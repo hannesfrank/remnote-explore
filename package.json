@@ -1,4 +1,19 @@
 {
+  "name": "remnote-query",
+  "version": "0.0.1",
+  "description": "Library and CLI to explore a RemNote knowledge base.",
+  "author": "Hannes Frank (frankhannes@gmail.com)",
+  "main": "src/index.ts",
+  "bin": {
+    "rq": "lib/rq.js"
+  },
+  "scripts": {
+    "run": "npx ts-node ./src/index.ts match test",
+    "build:watch": "tsc -w",
+    "run:watch": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
+    "run:build": "node lib/index.js",
+    "update-dev": "npm uninstall -g remnote-query && npm install -g ."
+  },
   "dependencies": {
     "chalk": "^4.1.1",
     "commander": "^7.2.0",
@@ -11,11 +26,5 @@
     "@types/lunr": "^2.3.3",
     "@types/node": "^15.0.2",
     "nodemon": "^2.0.7"
-  },
-  "scripts": {
-    "run": "npx ts-node ./src/index.ts match test",
-    "build:watch": "tsc -w",
-    "run:watch": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
-    "run:build": "node lib/index.js"
   }
 }
