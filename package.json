@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "commander": "^7.2.0",
+    "jszip": "^3.6.0",
+    "lunr": "^2.3.9",
+    "ts-node": "^9.1.1"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/lunr": "^2.3.3",
+    "@types/node": "^15.0.2",
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "run": "npx ts-node ./src/index.ts match test",
+    "build:watch": "tsc -w",
+    "run:watch": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
+    "run:build": "node lib/index.js"
+  }
+}
