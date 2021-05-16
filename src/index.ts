@@ -127,11 +127,15 @@ enum DocumentStatus {
   Finished,
 }
 
+function loadDocs(path = "rem.json") {
 // TODO: Postprocess dump to remove visibleRemOnDocument, Search records etc.
-const dump = require("../dump.json");
+  // TODO: Properly open the store
+  const dump = require("rem.json");
 let docs = {};
 for (const rem of dump.docs) {
   docs[rem._id] = rem;
+}
+  return docs;
 }
 
 function preprocessRem(rem) {
@@ -223,6 +227,7 @@ function stripPrefix(str, prefix: string) {
 
 const program = new Command();
 program
+  .option("--kb-path [kbPath]", "Path to rem.json and cards.json. Default: .")
   .command("search")
   .addOption(
     new Option("-t, --todo [todoStatus]", "Todo").choices([
@@ -286,6 +291,8 @@ program
   // -R --refName
   .description("Search for plain text in a rem.")
   .action(async (options) => {
+    const docs = loadDocs();
+
     const predicates = [];
 
     // console.error(options);
@@ -415,6 +422,8 @@ program
   .description("Prints rem ids given on stdin.")
   .option("-p, --portal", "Transform to pastable RemNote portals.")
   .action(async (options) => {
+    const docs = loadDocs();
+
     // TODO: Piping to this does not work in powershell
     if (options.portal) {
       console.error(
