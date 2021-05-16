@@ -3,7 +3,6 @@ import chalk from "chalk";
 import lunr from "lunr";
 import { Command, option, Option, parseOptions } from "commander";
 import * as JSZip from "jszip";
-import powerups from "./powerups";
 
 async function readKB(zippath: string) {
   const zipfile = fs.readFileSync(zippath);
@@ -60,10 +59,24 @@ interface Rem {
 
 type Timestamp = number;
 type RemId = string;
-type Reference = { i: "q"; q: RemId };
-type CodeBlock = { i: "o"; language: string; text: string };
-type Image = { i: "i"; url: string };
-type AudioVideo = { i: "a"; url: string; onlyAudio: boolean };
+type Reference = {
+  i: "q";
+  _id: RemId;
+};
+type CodeBlock = {
+  i: "o";
+  language: string;
+  text: string;
+};
+type Image = {
+  i: "i";
+  url: string;
+};
+type AudioVideo = {
+  i: "a";
+  url: string;
+  onlyAudio: boolean;
+};
 type InlineFormatting = {
   i: "m";
   text: string;
@@ -76,8 +89,12 @@ type InlineFormatting = {
   h: 1 | 2 | 3 | 4 | 5 | 6; // Highlight
   url: string; // Hyperlink
 };
-type Other = { i: string }; //
+type Other = {
+  // i: Exclude<string, "q" | "o" | "i" | "a" | "m">;
+  i: "can't handle";
+}; // Does it have text?
 type RichTextElement =
+  | string
   | Reference
   | CodeBlock
   | Image
@@ -118,7 +135,7 @@ for (const rem of dump.docs) {
 }
 
 function preprocessRem(rem) {
-  rem.text = getRemText(rem._id);
+  rem.text = getRemText(rem._id, rem);
   rem.isTopLevel = !!rem.parent;
   // rem.fullText =
   // TODO: Think about how to handle values along the path
@@ -127,26 +144,38 @@ function preprocessRem(rem) {
   delete rem.subBlocks; // visibleRemOnDocument
 }
 
-function getRemText(remId, exploredRem = []) {
+function getRemText(
+  remId: RemId,
+  docs: { [key: string]: Rem },
+  exploredRem: RemId[] = []
+): string {
   let rem = docs[remId];
   if (!rem) return;
 
   const richTextElementsText = rem.key.map((richTextElement) => {
     // If the element is a string, juts return it
-    if (typeof richTextElement == "string") {
+    if (typeof richTextElement === "string") {
       return richTextElement;
+    } else if ("text" in richTextElement) {
+      return richTextElement.text;
       // If the element is a Rem Reference (i == "q"), then recursively get that Rem Reference's text.
-    } else if (
-      richTextElement.i == "q" &&
-      !exploredRem.includes(richTextElement._id)
-    ) {
-      return getRemText(
+    } else if (richTextElement.i === "q") {
+      return !exploredRem.includes(richTextElement._id)
+        ? getRemText(
         richTextElement._id,
+            docs,
         exploredRem.concat([richTextElement._id])
-      );
+          )
+        : "";
+    } else if (richTextElement.i === "a") {
+      return `<${richTextElement.onlyAudio ? "audio" : "video"}:${
+        richTextElement.url
+      }>`;
+    } else if (richTextElement.i === "i") {
+      return `<image:${richTextElement.url}>`;
     } else {
       // If the Rem is some other rich text element, just take its .text property.
-      return richTextElement.text;
+      return `<unknown rich text ${richTextElement.i}>`;
     }
   });
   return richTextElementsText.join("");
@@ -312,7 +341,9 @@ program
         case "alpha":
         default:
           sortFunc = (rem1, rem2) =>
-            getRemText(rem1._id) < getRemText(rem2._id) ? -1 : 1;
+            getRemText(rem1._id, docs).localeCompare(
+              getRemText(rem2._id, docs)
+            );
       }
 
       result.sort(sortFunc);
@@ -331,7 +362,7 @@ program
 
     result.map((rem) => {
       if (options.print) {
-        printRem(rem);
+        printRem(rem, docs);
       } else {
         console.log(rem._id);
       }
@@ -347,14 +378,14 @@ program
     const [idx, docs] = await makeIndex();
     const results = idx.search(`key:${text}`);
     for (const res of results) {
-      printRem(docs[res.ref]);
+      printRem(docs[res.ref], docs);
     }
   });
 
 // Refactor
 // - colors
 // - lookups
-function printRem(rem) {
+function printRem(rem, docs) {
   const { key, value, _id, crt, ...other }: Rem = rem;
   const docMarker = { Pinned: "P", Draft: "D", Finished: "F", None: " " }[
     (rem.crt && rem.crt.o && rem.crt.o.s && rem.crt.o.s.s) || "None"
@@ -405,7 +436,7 @@ program
         if (options.portal) {
           console.log(`((${remId}`);
         } else {
-          printRem(docs[remId]);
+          printRem(docs[remId], docs);
         }
       } else {
         console.error(remId, "not found!");
