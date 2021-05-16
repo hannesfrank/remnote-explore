@@ -1,2 +1,8 @@
 node_modules
 lib
+
+backups
+rem.json
+cards.json
+
+.DS_Store
