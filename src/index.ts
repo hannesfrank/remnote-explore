@@ -276,19 +276,27 @@ program
     "Tag Ids of tags contained in the rem or an ancestor."
   )
   .option("-p, --print [format]", "Print more than just the rem id")
+  .option(
+    "-n, --count",
+    "Print the number of found rem instead of their rem ids."
+  )
   // Print options
   //   --url
   //   --markdown
   //   --portal
   //   sort tree
-  // FUll path references
+  // Full path references
   // regex
   // rem type (concept/descriptor)
   // card status
+  // top level
   // Number of practices
   // Daily documents/Date scopes with natural language
   // Is descendant
-  // -R --refName
+  // -n --refName
+  //   $(rq s some ref name) to return the id for --ref
+  // Upper case flags, -R, --Nref for negating
+  //   negation only works if you have a positive filter already
   .description("Search for plain text in a rem.")
   .action(async (options) => {
     const docs = loadDocs();
@@ -356,9 +364,15 @@ program
       result.sort(sortFunc);
     }
 
+    if (options.count) {
+      console.log(result.length);
+      return;
+    }
+
     if (options.limit) {
       const limit = parseInt(options.limit);
       if (limit > 0) {
+        // TODO: Make quiet flag?
         console.error("Limit", options.limit, "/ Total", result.length);
         result = result.slice(0, parseInt(options.limit));
       } else {
