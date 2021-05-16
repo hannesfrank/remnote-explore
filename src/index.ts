@@ -431,21 +431,34 @@ function printRem(rem, docs) {
   );
 }
 
+// For those simple line formats I could make a StreamPrintHandler consisting of prefix, transform, suffix
+// For more complex formats like markdown/html/tree I need to read in all remIds first
 program
   .command("print")
   .description("Prints rem ids given on stdin.")
-  .option("-p, --portal", "Transform to pastable RemNote portals.")
+  .option("-p, --portal-markup", "Transform to pastable RemNote portals.")
+  .option(
+    "-P, --portal",
+    "Focus a rem with an empty portal below and execute this generated code in the Console."
+  )
   .action(async (options) => {
     const docs = loadDocs();
 
     // TODO: Piping to this does not work in powershell
-    if (options.portal) {
+    if (options.portalMarkup) {
       console.error(
         chalk.blueBright.bold(
           "Note: You can only copy&paste one portal at a time into RemNote."
         )
       );
+    } else if (options.portal) {
+      console.log(`// Click parent of portal
+// Assume the portal is its first child
+portal = window.currentFocusedRem().childrenRem()[0]
+
+// Rem to add to the portal`);
     }
+
     const rl = require("readline").createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -456,8 +469,12 @@ program
     //  }
     rl.on("line", (remId) => {
       if (remId in docs) {
-        if (options.portal) {
+        if (options.portalMarkup) {
           console.log(`((${remId}`);
+        } else if (options.portal) {
+          console.info(
+            `rem = window.q("${remId}"); if (rem) rem.addToPortal(portal._id);`
+          );
         } else {
           printRem(docs[remId], docs);
         }

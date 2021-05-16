@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/gh/remnoteio/remnote-api@latest/RemNoteAPI.js"></script>
+  </head>
+
+  <body>
+    <!-- This plugin does not work. The portal syntax ((REM_ID is not recognized when pasted by the API. -->
+    <p>Paste portal markup here:</p>
+    <textarea
+      id="portal-input"
+      placeholder="((REM_ID"
+      rows="20"
+      ,
+      cols="20"
+    ></textarea>
+    <p><kbd>Enter</kbd> to add Portals, <kbd>Esc</kbd> to abort.</p>
+    <script>
+      (async () => {
+        const portalInput = document.getElementById("portal-input");
+        const context = await RemNoteAPI.v0.get_context();
+        const focusedRem = await RemNoteAPI.v0.get(context.remId);
+        const parentRemId = focusedRem.parent;
+
+        document.body.addEventListener("keydown", async (e) => {
+          if (e.key === "Escape") {
+            console.info("closing");
+            RemNoteAPI.v0.close_popup();
+          }
+          if (e.key === "Enter") {
+            const portals = portalInput.value.split("\n");
+            for (const portal of portals) {
+              console.info("Trying to create '" + portal + "'");
+              await RemNoteAPI.v0.create(portal, parentRemId);
+            }
+            RemNoteAPI.v0.close_popup();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
