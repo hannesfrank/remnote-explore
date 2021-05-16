@@ -413,4 +413,35 @@ program
     });
   });
 
+import * as path from "path";
+
+async function extractJsonBackup(zipPath: string, targetFolder = ".") {
+  const zipfile = fs.readFileSync(zipPath);
+
+  return await JSZip.loadAsync(zipfile).then(async (zip) => {
+    zip.forEach((path, file) => {
+      // console.log(path, file.dir, file.name, file.date);
+    });
+    const content = await zip.file("rem.json")!.async("string");
+    const cards = await zip.file("cards.json")!.async("string");
+    const kb = JSON.parse(content);
+    // TODO: Prepare kb.docs for faster processing
+    fs.writeFileSync(path.join(targetFolder, "rem.json"), JSON.stringify(kb));
+    fs.writeFileSync(path.join(targetFolder, "cards.json"), cards);
+    // console.info(chalk.blue.bold("Stats of KB"), chalk.green.bold(kb.name));
+    console.info(chalk.blue("User Id:         "), kb.userId);
+    console.info(chalk.blue("Knowledgebase Id:"), kb.knowledgebaseId);
+    console.info(chalk.blue("Export Date:     "), kb.exportDate);
+    console.info(chalk.blue("Export Version:  "), kb.exportVersion);
+    console.info(chalk.blue("# Rem:           "), kb.docs.length);
+  });
+}
+
+program
+  .command("extract [zip] [targetFolder]")
+  .description("Extract a json backup to the current directory.")
+  .action(async (zipPath, targetFolder) => {
+    extractJsonBackup(zipPath, targetFolder);
+  });
+
 export { program };
