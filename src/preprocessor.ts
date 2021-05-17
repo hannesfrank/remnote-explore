@@ -1,6 +1,6 @@
-import { RemId, RemStore } from "./models";
+import { Rem, RemId, RemStore } from "./models";
 
-export function getRemText(
+export function remText(
   remId: RemId,
   docs: RemStore,
   exploredRem: RemId[] = []
@@ -17,7 +17,7 @@ export function getRemText(
       // If the element is a Rem Reference (i == "q"), then recursively get that Rem Reference's text.
     } else if (richTextElement.i === "q") {
       return !exploredRem.includes(richTextElement._id)
-        ? getRemText(
+        ? remText(
             richTextElement._id,
             docs,
             exploredRem.concat([richTextElement._id])
@@ -37,8 +37,15 @@ export function getRemText(
   return richTextElementsText.join("");
 }
 
+export function richText(rem: Rem) {
+  const richTextElements = [];
+  if (Array.isArray(rem.key)) richTextElements.push(...rem.key);
+  if (Array.isArray(rem.value)) richTextElements.push(...rem.value);
+  return richTextElements;
+}
+
 export default function preprocessRem(rem) {
-  rem.text = getRemText(rem._id, rem);
+  rem.text = remText(rem._id, rem);
   rem.isTopLevel = !!rem.parent;
   // rem.fullText =
   // TODO: Think about how to handle values along the path
@@ -46,3 +53,13 @@ export default function preprocessRem(rem) {
   // Cleanup unnecessary data
   delete rem.subBlocks; // visibleRemOnDocument
 }
+// If a value is needed several times, we can use a lazy getter:
+/*
+get notifier() {
+  delete this.notifier;
+  return this.notifier = document.getElementById('bookmarked-notification-anchor');
+},
+*/
+// TODO: check the cost of turning all rem into a rem object with properties richText etc.
+// https://dev.to/cuzox/dynamically-convert-plain-objects-into-typescript-classes-1cjg
+// For now I just use functions

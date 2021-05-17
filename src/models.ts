@@ -10,6 +10,7 @@ export interface Rem {
   typeParents: RemId[];
   typeChildren: RemId[];
 }
+// TODO: maybe turn Rem into class with more methods and ref to docs
 
 export type RemStore = { [key: string]: Rem };
 
@@ -87,4 +88,8 @@ export enum DocumentStatus {
   Draft = "Draft",
   Pinned = "Pinned",
   Finished = "Finished",
+}
+export enum LatexType {
+  Inline,
+  Block,
 }

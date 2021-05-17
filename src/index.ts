@@ -16,56 +16,9 @@ import {
   Timestamp,
   TodoStatus,
 } from "./models";
-import { getRemText } from "./preprocessor";
+import { remText } from "./preprocessor";
 import printRem from "./print";
-import { extractJsonBackup, makeIndex } from "./util";
-
-function loadDocs(path = "rem.json") {
-  // TODO: Postprocess dump to remove visibleRemOnDocument, Search records etc.
-  // TODO: Properly open the store
-  const dump = require("rem.json");
-  let docs = {};
-  for (const rem of dump.docs) {
-    docs[rem._id] = rem;
-  }
-  return docs;
-}
-
-function isTodo(rem, status: TodoStatus | true) {
-  if (rem.crt && rem.crt.t && rem.crt.t.s) {
-    if (status === true) return true;
-    return rem.crt.t.s.s === status;
-  }
-}
-
-function isHeader(rem, size: HeaderSize | true) {
-  if (rem.crt && rem.crt.r && rem.crt.r.s) {
-    if (size === true) return true;
-    return rem.crt.r.s.s === size;
-  }
-}
-
-function isHighlight(rem, color: HighlightColor | true) {
-  if (rem.crt && rem.crt.h && rem.crt.h.c) {
-    if (color === true) return true;
-    return rem.crt.h.c.s === color;
-  }
-}
-
-function isDocument(rem, status: DocumentStatus | true) {
-  if (rem.crt && rem.crt.o && rem.crt.o && rem.crt.o.s) {
-    if (status === true) return true;
-    return rem.crt.o.s.s === status;
-  }
-}
-
-function isEditLater(rem) {
-  return rem.crt && rem.crt.e;
-}
-
-function hasTag(rem, tagId) {
-  return rem.typeParents && rem.typeParents.includes(tagId);
-}
+import { extractJsonBackup, makeIndex, loadDocs } from "./util";
 
 function stripPrefix(str, prefix: string) {
   return str.startsWith(prefix) ? str.slice(prefix.length) : str;
@@ -202,9 +155,7 @@ program
         case "alpha":
         default:
           sortFunc = (rem1, rem2) =>
-            getRemText(rem1._id, docs).localeCompare(
-              getRemText(rem2._id, docs)
-            );
+            remText(rem1._id, docs).localeCompare(remText(rem2._id, docs));
       }
 
       result.sort(sortFunc);

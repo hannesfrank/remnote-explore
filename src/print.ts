@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { Rem } from "./models";
-import { getRemText } from "./preprocessor";
+import { remText } from "./preprocessor";
 
 // Refactor
 // - colors
@@ -25,7 +25,7 @@ export default function printRem(rem, docs) {
   ];
   console.log(
     highlightMarker,
-    todoMarker + chalk.bold(getRemText(rem._id, docs).slice(0, 50)),
+    todoMarker + chalk.bold(remText(rem._id, docs).slice(0, 50)),
     chalk.dim(`https://remnote.io/document/${_id}`)
   );
 }

@@ -67,3 +67,15 @@ export async function extractJsonBackup(zipPath: string, targetFolder = ".") {
     console.info(chalk.blue("# Rem:           "), kb.docs.length);
   });
 }
+
+export function loadDocs(path = "rem.json") {
+  // TODO: Postprocess dump to remove visibleRemOnDocument, Search records etc.
+  // TODO: Properly open the store
+  const data = fs.readFileSync(path, "utf-8");
+  const kb = JSON.parse(data);
+  let docs = {};
+  for (const rem of kb.docs) {
+    docs[rem._id] = rem;
+  }
+  return docs;
+}
