@@ -16,6 +16,8 @@ import {
   Timestamp,
   TodoStatus,
 } from "./models";
+import filters from "./filter";
+import { hasTag } from "./filter";
 import { remText } from "./preprocessor";
 import printRem from "./print";
 import { extractJsonBackup, makeIndex, loadDocs } from "./util";
@@ -24,38 +26,26 @@ function stripPrefix(str, prefix: string) {
   return str.startsWith(prefix) ? str.slice(prefix.length) : str;
 }
 
+function addFilterOption(filter, program) {
+  let option = new Option(
+    `-${filter.flag} --${filter.name} [${filter.argName}]`,
+    filter.description
+  );
+  if (filter.choices) {
+    option = option.choices(filter.choices);
+  }
+  program.addOption(option);
+}
+
 const program = new Command();
 program
   .option("--kb-path [kbPath]", "Path to rem.json and cards.json. Default: .")
-  .command("search")
-  .addOption(
-    new Option("-t, --todo [todoStatus]", "Todo").choices([
-      "Finished",
-      "Unfinished",
-    ])
-  )
-  .addOption(
-    new Option("-h, --header [size]", "Header Size").choices(["H1", "H2", "H3"])
-  )
-  .addOption(
-    new Option("-c, --highlight [color]", "Highlight Color").choices([
-      "Blue",
-      "Green",
-      "Orange",
-      "Purple",
-      "Red",
-      "Yellow",
-    ])
-  )
-  .addOption(
-    new Option("-d, --document [documentStatus]", "Document Status").choices([
-      "Draft",
-      "Pinned",
-      "Finished",
-    ])
-  )
-  .option("-o, --or", "OR predicates instead of AND")
+  .command("search");
 
+filters.forEach((option) => addFilterOption(option, program));
+
+program
+  .option("-o, --or", "OR predicates instead of AND")
   .addOption(
     new Option("-s, --orderby [order]", "Sort by last").choices([
       "edit-asc",
@@ -103,21 +93,10 @@ program
     const predicates = [];
 
     // console.error(options);
-
-    if (options.todo) {
-      predicates.push((rem) => isTodo(rem, options.todo));
-    }
-
-    if (options.header) {
-      predicates.push((rem) => isHeader(rem, options.header));
-    }
-
-    if (options.highlight) {
-      predicates.push((rem) => isHighlight(rem, options.highlight));
-    }
-
-    if (options.document) {
-      predicates.push((rem) => isDocument(rem, options.document));
+    for (const { name, predicate } of filters) {
+      if (name in options) {
+        predicates.push((rem) => predicate(rem, options[name]));
+      }
     }
 
     if (options.tags) {

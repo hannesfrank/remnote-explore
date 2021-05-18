@@ -14,16 +14,42 @@ import { richText } from "./preprocessor";
 
 type Filter = (rem: Rem) => boolean;
 
-const filterDeclaration = [
+const filterDeclarations = [
   {
     flag: "t",
     name: "todo",
     description: "Todo Status",
     argName: "todoStatus",
-    choices: [TodoStatus.Finished, TodoStatus.Unfinished],
+    choices: Object.keys(TodoStatus),
     predicate: isTodo,
   },
+  {
+    flag: "h",
+    name: "header",
+    description: "Header Size",
+    argName: "headerSize",
+    choices: Object.keys(HeaderSize),
+    predicate: isHeader,
+  },
+  {
+    flag: "c",
+    name: "highlight",
+    description: "Highlight Color",
+    argName: "highlightColor",
+    choices: Object.keys(HighlightColor),
+    predicate: isHighlight,
+  },
+  {
+    flag: "d",
+    name: "document",
+    description: "Document Status",
+    argName: "documentStatus",
+    choices: Object.keys(DocumentStatus),
+    predicate: isDocument,
+  },
 ];
+
+export default filterDeclarations;
 
 export function isTodo(rem, status: TodoStatus | true) {
   if (rem.crt && rem.crt.t && rem.crt.t.s) {
