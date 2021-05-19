@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import { Rem } from "./models";
-import { remText } from "./preprocessor";
+import { Rem } from "./models.js";
+import { remText } from "./preprocessor.js";
 
 // Refactor
 // - colors
@@ -14,7 +14,7 @@ export default function printRem(rem, docs) {
     H1: "H1",
     H2: "H2",
     H3: "H3",
-    None: " ",
+    None: "  ",
   }[(rem.crt && rem.crt.r && rem.crt.r.s && rem.crt.r.s.s) || "None"];
 
   const highlightMarker = {
@@ -30,9 +30,18 @@ export default function printRem(rem, docs) {
   const todoMarker = { Finished: "[x] ", Unfinished: "[ ] ", None: "" }[
     (rem.crt && rem.crt.t && rem.crt.t.s && rem.crt.t.s.s) || "None"
   ];
+
+  const tags =
+    rem.typeParents &&
+    rem.typeParents
+      .map((tag) => "#" + remText(tag, docs).slice(0, 15))
+      .join(" ");
+
   console.log(
     highlightMarker,
-    todoMarker + chalk.bold(remText(rem._id, docs).slice(0, 50)),
-    chalk.dim(`https://remnote.io/document/${_id}`)
+    todoMarker +
+      chalk.bold(remText(rem._id, docs).split("\n").join().slice(0, 50)),
+    chalk.dim(`https://remnote.io/document/${_id}`),
+    tags
   );
 }
