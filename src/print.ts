@@ -10,14 +10,21 @@ export default function printRem(rem, docs) {
   const docMarker = { Pinned: "P", Draft: "D", Finished: "F", None: " " }[
     (rem.crt && rem.crt.o && rem.crt.o.s && rem.crt.o.s.s) || "None"
   ];
+  const headerMarker = {
+    H1: "H1",
+    H2: "H2",
+    H3: "H3",
+    None: " ",
+  }[(rem.crt && rem.crt.r && rem.crt.r.s && rem.crt.r.s.s) || "None"];
+
   const highlightMarker = {
-    Red: chalk.bgMagenta(docMarker),
-    Orange: chalk.bgRed(docMarker),
-    Yellow: chalk.bgYellow(docMarker),
-    Green: chalk.bgGreen(docMarker),
-    Blue: chalk.bgCyan(docMarker),
-    Purple: chalk.bgBlue(docMarker),
-    None: docMarker,
+    Red: chalk.bgMagenta(`${docMarker} ${headerMarker}`),
+    Orange: chalk.bgRed(`${docMarker} ${headerMarker}`),
+    Yellow: chalk.bgYellow(`${docMarker} ${headerMarker}`),
+    Green: chalk.bgGreen(`${docMarker} ${headerMarker}`),
+    Blue: chalk.bgCyan(`${docMarker} ${headerMarker}`),
+    Purple: chalk.bgBlue(`${docMarker} ${headerMarker}`),
+    None: `${docMarker} ${headerMarker}`,
   }[(rem.crt && rem.crt.h && rem.crt.h.c && rem.crt.h.c.s) || "None"];
 
   const todoMarker = { Finished: "[x] ", Unfinished: "[ ] ", None: "" }[
