@@ -54,7 +54,7 @@ searchCommand
     new Option(
       "--orderby [order]",
       "Sort by rem property ascending. See also --desc"
-    ).choices(["last-edit", "edit", "create", "alpha", "random"])
+    ).choices(["last-edit", "create", "alpha", "random"])
   )
   .option("--desc", "Reverse sort order")
   .option("-l, --limit <limit>", "Limit number of results")
@@ -132,16 +132,10 @@ searchCommand
     if (options.orderby) {
       let sortFunc;
       switch (options.orderby) {
-        case "edit-desc":
-          sortFunc = (rem1, rem2) => (rem1.u > rem2.u ? -1 : 1);
-          break;
-        case "edit-asc":
+        case "last-edit":
           sortFunc = (rem1, rem2) => (rem1.u < rem2.u ? -1 : 1);
           break;
-        case "create-desc":
-          sortFunc = (rem1, rem2) => (rem1.createdAt > rem2.createdAt ? -1 : 1);
-          break;
-        case "create-asc":
+        case "create":
           sortFunc = (rem1, rem2) => (rem1.createdAt < rem2.createdAt ? -1 : 1);
           break;
         case "alpha":
@@ -150,7 +144,18 @@ searchCommand
             remText(rem1._id, docs).localeCompare(remText(rem2._id, docs));
       }
 
-      result.sort(sortFunc);
+      if (options.orderby === "random") {
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+        }
+      } else {
+        result.sort(sortFunc);
+      }
+    }
+
+    if (options.desc && options.orderby !== "random") {
+      result.reverse();
     }
 
     if (options.count) {
@@ -213,7 +218,7 @@ program
           "Note: You can only copy&paste one portal at a time into RemNote."
         )
       );
-    } else if (options.portal) {
+    } else if (options.portalCode) {
       console.log(`// Click parent of portal
 // Assume the portal is its first child
 portal = window.currentFocusedRem().childrenRem()[0]
@@ -237,8 +242,7 @@ portal = window.currentFocusedRem().childrenRem()[0]
           console.log(
             `rem = window.q("${remId}"); if (rem) rem.addToPortal(portal._id);`
           );
-        }
-        if (options.richText) {
+        } else if (options.richText) {
           console.log(docs[remId].key);
         } else {
           printRem(docs[remId], docs);
