@@ -26,9 +26,15 @@ function stripPrefix(str, prefix: string) {
   return str.startsWith(prefix) ? str.slice(prefix.length) : str;
 }
 
+// TODO: Fallback defaults
+// TODO: Implement multiple
+// TODO: Implement negatable
+// TODO: Use a custom preprocessor function which just returns the predicate
+//   Q: How to handle docs encapsulation then?
 function addFilterOption(filter, program) {
   let option = new Option(
-    `-${filter.flag} --${filter.name} [${filter.argName}]`,
+    `-${filter.flag}, --${filter.longName}` +
+      (filter.argName ? ` [${filter.argName}]` : ""),
     filter.description
   );
   if (filter.choices) {
@@ -38,13 +44,13 @@ function addFilterOption(filter, program) {
 }
 
 const program = new Command();
-program
+const searchCommand = program
   .option("--kb-path [kbPath]", "Path to rem.json and cards.json. Default: .")
   .command("search");
 
-filters.forEach((option) => addFilterOption(option, program));
+filters.forEach((option) => addFilterOption(option, searchCommand));
 
-program
+searchCommand
   .option("-o, --or", "OR predicates instead of AND")
   .addOption(
     new Option("-s, --orderby [order]", "Sort by last").choices([
@@ -93,9 +99,12 @@ program
     const predicates = [];
 
     // console.error(options);
-    for (const { name, predicate } of filters) {
-      if (name in options) {
-        predicates.push((rem) => predicate(rem, options[name]));
+    for (const Filter of filters) {
+      if (Filter.longName in options) {
+        const filterInstance = new Filter(docs);
+        predicates.push((rem) =>
+          filterInstance.check(rem, options[Filter.longName])
+        );
       }
     }
 
@@ -187,9 +196,10 @@ program
   .description("Prints rem ids given on stdin.")
   .option("-p, --portal-markup", "Transform to pastable RemNote portals.")
   .option(
-    "-P, --portal",
+    "-c, --portal-code",
     "Focus a rem with an empty portal below and execute this generated code in the Console."
   )
+  .option("-r, --rich-text", "The rem's key as rich text array.")
   .action(async (options) => {
     const docs = loadDocs();
 
@@ -219,10 +229,13 @@ portal = window.currentFocusedRem().childrenRem()[0]
       if (remId in docs) {
         if (options.portalMarkup) {
           console.log(`((${remId}`);
-        } else if (options.portal) {
-          console.info(
+        } else if (options.portalCode) {
+          console.log(
             `rem = window.q("${remId}"); if (rem) rem.addToPortal(portal._id);`
           );
+        }
+        if (options.richText) {
+          console.log(docs[remId].key);
         } else {
           printRem(docs[remId], docs);
         }

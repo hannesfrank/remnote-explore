@@ -12,12 +12,107 @@ import {
 } from "./models";
 import { richText } from "./preprocessor";
 
-type Filter = (rem: Rem) => boolean;
+abstract class RemFilter {
+  docs: RemStore;
+  abstract check(rem: Rem, ...args: any[]): boolean;
+  constructor(docs: RemStore) {
+    this.docs = docs;
+  }
+}
+
+interface CLIRemFilterInterface {
+  flag?: string;
+  longName: string;
+  description: string;
+  argName: string;
+  choices?: string[];
+  multiple?: boolean;
+  negatable?: boolean;
+}
+
+class TodoFilter extends RemFilter {
+  docs: RemStore;
+  static flag = "t";
+  static longName = "todo";
+  static description = "Todo Status";
+  static argName = "todoStatus";
+  static choices = Object.keys(TodoStatus);
+
+  check(rem: Rem, status: TodoStatus | true) {
+    if (rem.crt && rem.crt.t && rem.crt.t.s) {
+      if (status === true) return true;
+      return rem.crt.t.s.s === status;
+    }
+  }
+}
+
+class HeaderFilter extends RemFilter {
+  docs: RemStore;
+  static flag = "t";
+  static longName = "header";
+  static description = "Header Status";
+  static argName = "headerSize";
+  static choices = Object.keys(HeaderSize);
+
+  check(rem, headerSize: HeaderSize | true) {
+    if (rem.crt && rem.crt.r && rem.crt.r.s) {
+      if (headerSize === true) return true;
+      return rem.crt.r.s.s === headerSize;
+    }
+  }
+}
+
+class HighlightFilter extends RemFilter {
+  docs: RemStore;
+  static flag = "h";
+  static longName = "highlight";
+  static description = "Highlight Status";
+  static argName = "highlightColor";
+  static choices = Object.keys(HighlightColor);
+
+  check(rem, color: HighlightColor | true) {
+    if (rem.crt && rem.crt.h && rem.crt.h.c) {
+      if (color === true) return true;
+      return rem.crt.h.c.s === color;
+    }
+  }
+}
+
+class DocumentFilter extends RemFilter {
+  docs: RemStore;
+  static flag = "d";
+  static longName = "document";
+  static description = "Document Status";
+  static argName = "documentStatus";
+  static choices = Object.keys(DocumentStatus);
+
+  check(rem, status: DocumentStatus | true) {
+    if (rem.crt && rem.crt.o && rem.crt.o && rem.crt.o.s) {
+      if (status === true) return true;
+      return rem.crt.o.s.s === status;
+    }
+  }
+}
+
+type CLIRemFilter =
+  | typeof DocumentFilter
+  | typeof TodoFilter
+  | typeof HeaderFilter
+  | typeof HighlightFilter;
+
+const filters: CLIRemFilter[] = [
+  DocumentFilter,
+  TodoFilter,
+  HeaderFilter,
+  HighlightFilter,
+];
+
+export default filters;
 
 const filterDeclarations = [
   {
     flag: "t",
-    name: "todo",
+    longName: "todo",
     description: "Todo Status",
     argName: "todoStatus",
     choices: Object.keys(TodoStatus),
@@ -25,7 +120,7 @@ const filterDeclarations = [
   },
   {
     flag: "h",
-    name: "header",
+    longName: "header",
     description: "Header Size",
     argName: "headerSize",
     choices: Object.keys(HeaderSize),
@@ -33,7 +128,7 @@ const filterDeclarations = [
   },
   {
     flag: "c",
-    name: "highlight",
+    longName: "highlight",
     description: "Highlight Color",
     argName: "highlightColor",
     choices: Object.keys(HighlightColor),
@@ -41,15 +136,20 @@ const filterDeclarations = [
   },
   {
     flag: "d",
-    name: "document",
+    longName: "document",
     description: "Document Status",
     argName: "documentStatus",
     choices: Object.keys(DocumentStatus),
     predicate: isDocument,
   },
+  {
+    flag: "b",
+    longName: "has-bold",
+    description: "Contains bold inline formatting",
+    predicate: hasBold,
+  },
 ];
-
-export default filterDeclarations;
+// export default filterDeclarations;
 
 export function isTodo(rem, status: TodoStatus | true) {
   if (rem.crt && rem.crt.t && rem.crt.t.s) {

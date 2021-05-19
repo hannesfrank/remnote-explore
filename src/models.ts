@@ -2,7 +2,7 @@ export interface Rem {
   key: RichTextElement[];
   value: RichTextElement[];
   _id: RemId;
-  crt: object;
+  crt: any;
   children: RemId[];
   parent: RemId | null;
   createdAt: Timestamp;
