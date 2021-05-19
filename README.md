@@ -15,7 +15,13 @@
 
 ### Live Updating JSON Backup
 
-TODO: Add user script here.
+Running [`syncIndexedDB.js`](./support/syncIndexedDB.js) in the DevTools Console periodically downloads your KB
+as JSON backup to a folder.
+
+- Change the sync interval (default: 10s).
+- Select a file `rem.json` in the directory you are going to run `rq` in.
+
+To deactive the syncing run `clearInterval(jsonDumpHandler)` in the Console.
 
 <!--
 ## Ideas
