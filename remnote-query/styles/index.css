@@ -1,0 +1,39 @@
+main {
+  width: 100%;
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  height: 600px;
+}
+
+header {
+  background-color: green;
+  width: 100%;
+}
+
+h1 {
+  width: 400px;
+  position: relative;
+  margin: 0 auto;
+  color: #fff;
+  font-size: 1.8em;
+  line-height: 2.4em;
+}
+
+.blockly-editor {
+  width: 100%;
+}
+
+.button {
+  width: 120px;
+  height: 140px;
+  color: #fff;
+  font-size: 3em;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 140px;
+}
+
+.mdl-button {
+  margin: 1em;
+}

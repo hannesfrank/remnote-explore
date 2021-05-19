@@ -1,4 +1,3 @@
-import { filter } from "jszip";
 import {
   TodoStatus,
   HeaderSize,
@@ -9,8 +8,8 @@ import {
   RichTextElement,
   RemId,
   LatexType,
-} from "./models";
-import { richText } from "./preprocessor";
+} from "./models.js";
+import { richText } from "./preprocessor.js";
 
 abstract class RemFilter {
   docs: RemStore;
@@ -21,18 +20,24 @@ abstract class RemFilter {
 }
 
 interface CLIRemFilterInterface {
-  flag?: string;
+  shortName?: string;
   longName: string;
   description: string;
   argName: string;
   choices?: string[];
+  required?: boolean;
   multiple?: boolean;
   negatable?: boolean;
 }
 
+interface BlocklyRemFilterInterface {
+  longName: string;
+  // message:
+}
+
 class TodoFilter extends RemFilter {
   docs: RemStore;
-  static flag = "t";
+  static shortName = "t";
   static longName = "todo";
   static description = "Todo Status";
   static argName = "todoStatus";
@@ -48,7 +53,7 @@ class TodoFilter extends RemFilter {
 
 class HeaderFilter extends RemFilter {
   docs: RemStore;
-  static flag = "t";
+  static shortName = "t";
   static longName = "header";
   static description = "Header Status";
   static argName = "headerSize";
@@ -64,7 +69,7 @@ class HeaderFilter extends RemFilter {
 
 class HighlightFilter extends RemFilter {
   docs: RemStore;
-  static flag = "h";
+  static shortName = "h";
   static longName = "highlight";
   static description = "Highlight Status";
   static argName = "highlightColor";
@@ -80,7 +85,7 @@ class HighlightFilter extends RemFilter {
 
 class DocumentFilter extends RemFilter {
   docs: RemStore;
-  static flag = "d";
+  static shortName = "d";
   static longName = "document";
   static description = "Document Status";
   static argName = "documentStatus";
@@ -94,24 +99,59 @@ class DocumentFilter extends RemFilter {
   }
 }
 
+// TODO: The filter args should be passed to init, not check.
+// This way an optimized check function can be generated.
+class TagFilter extends RemFilter {
+  docs: RemStore;
+  static shortName = "x";
+  static longName = "tag";
+  static description = "Has Tag #";
+  static argName = "tag";
+  static multiple = true;
+  check(rem, tagId: RemId | true) {
+    if (tagId === true) {
+      return rem.typeParents && rem.typeParents.length > 0;
+    } else {
+      return (
+        rem.typeParents && rem.typeParents.includes(stripPrefix(tagId, "##"))
+      );
+    }
+  }
+  // TODO: When the filter gets all args.
+  // check(rem, tagIds: RemId[] | true) {
+  //   if (tagIds === true) {
+  //     return rem.typeParents && rem.typeParents.length > 0;
+  //   } else {
+  //     return (
+  //       rem.typeParents &&
+  //       tagIds.every((tagId) =>
+  //         rem.typeParents.includes(stripPrefix(tagId, "##"))
+  //       )
+  //     );
+  //   }
+  // }
+}
+
 type CLIRemFilter =
   | typeof DocumentFilter
   | typeof TodoFilter
   | typeof HeaderFilter
-  | typeof HighlightFilter;
+  | typeof HighlightFilter
+  | typeof TagFilter;
 
 const filters: CLIRemFilter[] = [
   DocumentFilter,
   TodoFilter,
   HeaderFilter,
   HighlightFilter,
+  TagFilter,
 ];
 
 export default filters;
 
 const filterDeclarations = [
   {
-    flag: "t",
+    shortName: "t",
     longName: "todo",
     description: "Todo Status",
     argName: "todoStatus",
@@ -119,7 +159,7 @@ const filterDeclarations = [
     predicate: isTodo,
   },
   {
-    flag: "h",
+    shortName: "h",
     longName: "header",
     description: "Header Size",
     argName: "headerSize",
@@ -127,7 +167,7 @@ const filterDeclarations = [
     predicate: isHeader,
   },
   {
-    flag: "c",
+    shortName: "c",
     longName: "highlight",
     description: "Highlight Color",
     argName: "highlightColor",
@@ -135,7 +175,7 @@ const filterDeclarations = [
     predicate: isHighlight,
   },
   {
-    flag: "d",
+    shortName: "d",
     longName: "document",
     description: "Document Status",
     argName: "documentStatus",
@@ -143,7 +183,7 @@ const filterDeclarations = [
     predicate: isDocument,
   },
   {
-    flag: "b",
+    shortName: "b",
     longName: "has-bold",
     description: "Contains bold inline formatting",
     predicate: hasBold,
@@ -281,4 +321,8 @@ function hasRichTextElement(rem: Rem, predicate: (RichTextElement) => boolean) {
 function isReference(richText: RichTextElement, refId: RemId) {
   // @ts-ignore
   return richText.i === "q" && richText._id === refId;
+}
+
+function stripPrefix(str, prefix: string) {
+  return str.startsWith(prefix) ? str.slice(prefix.length) : str;
 }

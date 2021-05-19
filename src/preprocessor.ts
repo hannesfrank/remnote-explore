@@ -1,4 +1,4 @@
-import { Rem, RemId, RemStore } from "./models";
+import { Rem, RemId, RemStore } from "./models.js";
 
 export function remText(
   remId: RemId,

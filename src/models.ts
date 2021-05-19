@@ -68,8 +68,8 @@ export type RichTextElement =
 // =====================================
 // TODO: Move to power up definition file
 export enum TodoStatus {
-  Finished = "Finished",
   Unfinished = "Unfinished",
+  Finished = "Finished",
 }
 export enum HeaderSize {
   H1 = "H1",
@@ -85,8 +85,8 @@ export enum HighlightColor {
   Purple = "Purple",
 }
 export enum DocumentStatus {
-  Draft = "Draft",
   Pinned = "Pinned",
+  Draft = "Draft",
   Finished = "Finished",
 }
 export enum LatexType {

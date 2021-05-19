@@ -12,6 +12,7 @@
     "install-global": "npm i -g",
     "update-dev": "npm uninstall -g remnote-query && npm install -g",
     "build": "npm run clean && tsc -p .",
+    "build:browser": "tsc -p tsconfig.browser.json",
     "build:watch": "tsc -w -p .",
     "run": "npx ts-node ./src/index.ts match test",
     "run:js": "node lib/index.js",
