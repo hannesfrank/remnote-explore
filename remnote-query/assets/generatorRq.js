@@ -24,13 +24,27 @@ filters.forEach((filter) => {
 });
 
 rqGenerator["limit"] = function (block) {
+  console.log("limit");
   const limit = block.getFieldValue("LIMIT");
   // TODO: Assemble JavaScript into code variable.
   return `--limit ${limit}`;
 };
+
 rqGenerator["orderby"] = function (block) {
   const sortOrder = block.getFieldValue("SORT_ORDER");
   const desc = block.getFieldValue("DESC");
   // TODO: Assemble JavaScript into code variable.
-  return `--orderby ${SORT_ORDER}` + (desc ? " --desc" : "");
+  return `--orderby ${sortOrder}` + (desc ? " --desc" : "");
+};
+
+// This generates the code for a stack of blocks.
+// TODO: Evaluate if a all enclosing query block with extra statement slots for
+// output modifiers would be better.
+rqGenerator.scrub_ = function (block, code, opt_thisOnly) {
+  const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+  let nextCode = "";
+  if (nextBlock) {
+    nextCode = opt_thisOnly ? "" : " " + rqGenerator.blockToCode(nextBlock);
+  }
+  return code + nextCode;
 };

@@ -89,7 +89,7 @@ const toolboxJson = {
               </statement>
               <next>
                 <block type="orderby">
-                  <field name="SORT_ORDER">RANDOM</field>
+                  <field name="SORT_ORDER">random</field>
                   <next>
                     <block type="limit">
                       <field name="LIMIT">1</field>
