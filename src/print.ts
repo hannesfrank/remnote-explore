@@ -18,12 +18,12 @@ export default function printRem(rem, docs) {
   }[(rem.crt && rem.crt.r && rem.crt.r.s && rem.crt.r.s.s) || "None"];
 
   const highlightMarker = {
-    Red: chalk.bgMagenta(`${docMarker} ${headerMarker}`),
-    Orange: chalk.bgRed(`${docMarker} ${headerMarker}`),
-    Yellow: chalk.bgYellow(`${docMarker} ${headerMarker}`),
-    Green: chalk.bgGreen(`${docMarker} ${headerMarker}`),
-    Blue: chalk.bgCyan(`${docMarker} ${headerMarker}`),
-    Purple: chalk.bgBlue(`${docMarker} ${headerMarker}`),
+    Red: chalk.black.bgMagenta(`${docMarker} ${headerMarker}`),
+    Orange: chalk.black.bgRed(`${docMarker} ${headerMarker}`),
+    Yellow: chalk.black.bgYellow(`${docMarker} ${headerMarker}`),
+    Green: chalk.black.bgGreen(`${docMarker} ${headerMarker}`),
+    Blue: chalk.black.bgCyan(`${docMarker} ${headerMarker}`),
+    Purple: chalk.black.bgBlue(`${docMarker} ${headerMarker}`),
     None: `${docMarker} ${headerMarker}`,
   }[(rem.crt && rem.crt.h && rem.crt.h.c && rem.crt.h.c.s) || "None"];
 
