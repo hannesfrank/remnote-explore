@@ -22,10 +22,6 @@ import { remText } from "./preprocessor";
 import printRem from "./print";
 import { extractJsonBackup, makeIndex, loadDocs } from "./util";
 
-function stripPrefix(str, prefix: string) {
-  return str.startsWith(prefix) ? str.slice(prefix.length) : str;
-}
-
 // TODO: Fallback defaults
 // TODO: Implement multiple
 // TODO: Implement negatable
@@ -33,8 +29,10 @@ function stripPrefix(str, prefix: string) {
 //   Q: How to handle docs encapsulation then?
 function addFilterOption(filter, program) {
   let option = new Option(
-    `-${filter.flag}, --${filter.longName}` +
-      (filter.argName ? ` [${filter.argName}]` : ""),
+    `-${filter.shortName}, --${filter.longName}` +
+      (filter.argName
+        ? ` [${filter.argName}${filter.multiple ? "..." : ""}]`
+        : ""),
     filter.description
   );
   if (filter.choices) {
@@ -53,23 +51,21 @@ filters.forEach((option) => addFilterOption(option, searchCommand));
 searchCommand
   .option("-o, --or", "OR predicates instead of AND")
   .addOption(
-    new Option("-s, --orderby [order]", "Sort by last").choices([
-      "edit-asc",
-      "edit-desc",
-      "create-asc",
-      "create-desc",
-      "alpha",
-    ])
+    new Option(
+      "--orderby [order]",
+      "Sort by rem property ascending. See also --desc"
+    ).choices(["last-edit", "edit", "create", "alpha", "random"])
   )
+  .option("--desc", "Reverse sort order")
   .option("-l, --limit <limit>", "Limit number of results")
   .option(
     "-r, --ref <refs...>",
     "Rem Ids of references contained in the rem or an ancestor."
   )
-  .option(
-    "-g, --tags <tags...>",
-    "Tag Ids of tags contained in the rem or an ancestor."
-  )
+  // .option(
+  //   "-g, --tags <tags...>",
+  //   "Tag Ids of tags contained in the rem or an ancestor."
+  // )
   .option("-p, --print [format]", "Print more than just the rem id")
   .option(
     "-n, --count",
@@ -98,22 +94,30 @@ searchCommand
 
     const predicates = [];
 
+    function addFilter(Filter, option) {
+      const filterInstance = new Filter(docs);
+      predicates.push((rem) => filterInstance.check(rem, option));
+    }
+
     // console.error(options);
     for (const Filter of filters) {
       if (Filter.longName in options) {
-        const filterInstance = new Filter(docs);
-        predicates.push((rem) =>
-          filterInstance.check(rem, options[Filter.longName])
-        );
+        const option = options[Filter.longName];
+
+        if (Array.isArray(option)) {
+          option.forEach((val) => addFilter(Filter, val));
+        } else {
+          addFilter(Filter, option);
+        }
       }
     }
 
-    if (options.tags) {
-      console.error("tags:", options.tags);
-      options.tags.map((tag) =>
-        predicates.push((rem) => hasTag(rem, stripPrefix(tag, "##")))
-      );
-    }
+    // if (options.tag) {
+    //   console.error("tags:", options.tag);
+    //   options.tags.map((tag) =>
+    //     predicates.push((rem) => hasTag(rem, stripPrefix(tag, "##")))
+    //   );
+    // }
 
     if (predicates.length == 0) {
       return;
